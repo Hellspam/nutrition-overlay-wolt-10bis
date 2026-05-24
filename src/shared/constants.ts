@@ -1,8 +1,9 @@
 // Confirm GEMINI_MODEL is a current, free-tier model at wire-up time:
 // https://ai.google.dev/gemini-api/docs/models  and  /docs/rate-limits
-// gemini-3.5-flash returns clean JSON. A small thinking budget trades a little latency
-// for better decomposition of complex items (0 would disable thinking entirely).
-export const GEMINI_MODEL = 'gemini-3.5-flash'
+// gemini-2.5-flash: much more generous free-tier daily quota than 3.5-flash, supports the
+// thinking budget below, and decomposes complex items well. A small thinking budget trades
+// a little latency for better estimates (0 would disable thinking entirely).
+export const GEMINI_MODEL = 'gemini-2.5-flash'
 export const GEMINI_ENDPOINT =
   `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 // Thinking-token cap per request. Small = a bit of reasoning without the multi-second

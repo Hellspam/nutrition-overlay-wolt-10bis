@@ -16,7 +16,7 @@ pick add‑ons.
   nothing is sent until you ask.
 - ➕ **Live totals** — toggle add‑ons (fries, rice, extras) and the total updates instantly,
   with no extra API calls.
-- ⚡ **Fast** — one grouped request per item using Google **Gemini 3.5 Flash** (a few seconds).
+- ⚡ **Fast** — one grouped request per item using Google **Gemini 2.5 Flash** (a few seconds).
 - 💾 **Cached** — each item is only looked up once.
 - 🔒 **Local & private** — your API key and cached results live only in your browser.
 - 🌐 Runs **only** on `wolt.com` and `10bis.co.il`, with a right‑to‑left Hebrew UI.

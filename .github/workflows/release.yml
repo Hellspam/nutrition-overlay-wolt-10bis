@@ -1,0 +1,44 @@
+name: Release
+
+# Trigger by pushing a version tag, e.g.:
+#   git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # needed to create the GitHub Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # Keep the shipped manifest version in sync with the tag (v0.1.0 -> 0.1.0).
+      - name: Sync manifest version to tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node -e "const f='manifest.json';const m=require('./'+f);m.version='${VERSION}';require('fs').writeFileSync(f, JSON.stringify(m, null, 2) + '\n')"
+
+      - run: npm test
+      - run: npm run build
+
+      - name: Package zip
+        run: cd dist && zip -qr "../nutrition-overlay-${GITHUB_REF_NAME}.zip" .
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "nutrition-overlay-${GITHUB_REF_NAME}.zip" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes

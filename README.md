@@ -64,6 +64,25 @@ The site‑specific selectors live in `src/content/adapters/{wolt,tenbis}.ts` an
 against real captured markup in `tests/fixtures/`. If a site changes its markup and the widget
 stops appearing, re‑capture a fixture and adjust that adapter.
 
+## CI & releases
+
+- **CI** (`.github/workflows/ci.yml`) runs lint + type‑check + tests + build on every push and
+  PR, and uploads the packaged `nutrition-overlay.zip` as a downloadable run **artifact**.
+- **Release** (`.github/workflows/release.yml`) is triggered by a version tag and publishes a
+  GitHub Release with the zip attached.
+
+To cut a release:
+
+```bash
+# 1. bump "version" in manifest.json (e.g. 0.1.0 -> 0.2.0), commit, then:
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The workflow builds the extension, syncs the manifest version to the tag, and publishes
+**`nutrition-overlay-v0.2.0.zip`** on the Release page (with auto‑generated notes). Share that
+zip's URL, or upload it to the Chrome Web Store.
+
 ## Privacy
 
 Only menu item **text** (names, descriptions, option labels) is sent to Google Gemini to

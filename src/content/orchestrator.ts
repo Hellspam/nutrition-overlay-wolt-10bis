@@ -67,15 +67,17 @@ export function wireModalButton(
   base: BaseRef,
   fetchEstimates: FetchEstimates,
 ): void {
-  // Wolt streams modal content in after the shell, so the anchor (its add-to-cart
-  // button) may be absent on the first observer fire. Use it only as a readiness
-  // signal: bail WITHOUT marking until it exists, so a later mutation retries.
-  if (!adapter.getModalTotalAnchor(modal)) return
+  // The options section may stream in after the modal shell (Wolt does this), so the
+  // anchor can be absent on the first observer fire. Use it as a readiness signal AND
+  // the in-flow insertion point: bail WITHOUT marking until it exists, so a later
+  // mutation retries and wires the populated modal.
+  const anchor = adapter.getModalTotalAnchor(modal)
+  if (!anchor) return
   // Idempotent per dish; re-wire if a reused container now shows a different dish.
   if ((modal as any).__nutritionBase === base.id) return
   ;(modal as any).__nutritionBase = base.id
 
-  const host = ensureHost(modal) // floating panel pinned to the modal's top-right
+  const host = ensureHost(modal, anchor) // right-aligned block inserted above the options
   host.textContent = '' // clear any stale widget (reused container / previous dish)
   const btn = createNutritionButton()
   host.appendChild(btn)

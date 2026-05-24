@@ -63,7 +63,13 @@ export const tenbisAdapter: SiteAdapter = {
   },
 
   getModalTotalAnchor(modalRoot) {
-    return modalRoot.querySelector<HTMLElement>('[data-test-id="submitDishBtn"]')
+    // The widget is inserted in-flow BEFORE this node: above the options (the first
+    // fieldset), below the dish description. Falls back to the add-dish button for
+    // items with no options. Returning null means the modal hasn't populated yet.
+    return (
+      modalRoot.querySelector<HTMLElement>('fieldset') ??
+      modalRoot.querySelector<HTMLElement>('[data-test-id="submitDishBtn"]')
+    )
   },
 
   getModalItem(modalRoot) {

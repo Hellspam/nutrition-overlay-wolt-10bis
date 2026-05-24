@@ -21,12 +21,11 @@ const CSS = `
   box-sizing: border-box; margin: 0; padding: 0;
   font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
-/* Floating panel pinned to the modal's top-right corner — out of the modal's
-   layout flow so it never overlaps the stepper / submit button. */
+/* In-flow panel, right-aligned, inserted above the options (below the description)
+   so it never overlaps the title, stepper, or submit button. */
 .${HOST_CLASS} {
-  position: absolute; top: 14px; right: 14px; z-index: 40;
-  width: 280px; max-width: 44vw;
-  display: flex; flex-direction: column; pointer-events: auto;
+  display: block; width: 100%; max-width: 300px;
+  margin: 12px 0 12px auto; /* margin-left:auto hugs the right edge, any page dir */
 }
 .${TOTAL_CLASS} {
   direction: rtl; display: block; position: relative; overflow: hidden; text-align: right;
@@ -95,21 +94,19 @@ export function ensureStyles(): void {
 }
 
 /**
- * The floating container for our widget, pinned to the modal's top-right corner.
- * Appended to the modal so it tracks it, and out of the modal's flow so it never
- * disturbs the host layout. Created once per modal.
+ * The container for our widget: a right-aligned block inserted in-flow just before
+ * `anchor` (the options section), so it sits below the description and above the
+ * options without overlapping any modal content. Created once per modal.
  */
-export function ensureHost(modal: HTMLElement): HTMLElement {
+export function ensureHost(modal: HTMLElement, anchor: HTMLElement): HTMLElement {
   ensureStyles()
   let host = modal.querySelector<HTMLElement>('.' + HOST_CLASS)
   if (!host) {
-    // Give the modal a positioning context if it doesn't already have one
-    // (relative with no offsets doesn't move it — only anchors our absolute child).
-    if (getComputedStyle(modal).position === 'static') modal.style.position = 'relative'
     host = document.createElement('div')
     host.className = HOST_CLASS
     host.setAttribute('dir', 'rtl')
-    modal.appendChild(host)
+    if (anchor.parentElement) anchor.parentElement.insertBefore(host, anchor)
+    else modal.appendChild(host)
   }
   return host
 }

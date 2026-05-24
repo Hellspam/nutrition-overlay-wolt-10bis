@@ -8,6 +8,7 @@ import {
   createNutritionButton,
   markButtonLoading,
   markButtonError,
+  markButtonRateLimited,
 } from './render'
 import { sumNutrition } from '../core/nutrition'
 import { hashText } from '../core/hash'
@@ -101,7 +102,8 @@ export function wireModalButton(
       resp = { ok: false, error: 'API_ERROR' }
     }
     if (!resp.ok || !resp.results) {
-      markButtonError(btn)
+      if (resp.error === 'RATE_LIMIT') markButtonRateLimited(btn)
+      else markButtonError(btn)
       return
     }
 

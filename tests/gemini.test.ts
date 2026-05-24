@@ -57,6 +57,10 @@ describe('callGemini', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('rate', { status: 429 })))
     await expect(callGemini('KEY', items)).rejects.toThrow(/429/)
   })
+  it('throws a non-retryable error on a daily-quota 429', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('RESOURCE_EXHAUSTED PerDay quota', { status: 429 })))
+    await expect(callGemini('KEY', items)).rejects.toThrow(/quota/i)
+  })
   it('returns parsed map on 200', async () => {
     const ok = { candidates: [{ content: { parts: [{ text: JSON.stringify([
       { id: 'a', calories: 450, protein_g: 12, carbs_g: 55, fat_g: 18 },

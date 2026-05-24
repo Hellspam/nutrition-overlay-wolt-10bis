@@ -83,6 +83,13 @@ export async function callGemini(apiKey: string, items: GeminiItem[]): Promise<M
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(buildRequestBody(items)),
   })
+  if (res.status === 429) {
+    const body = await res.text().catch(() => '')
+    // A daily free-tier quota won't recover on retry — throw a non-retryable error so the
+    // queue fails fast; a transient per-minute 429 stays retryable (matches /429/).
+    if (/perday|resource_exhausted|quota/i.test(body)) throw new Error('Gemini quota exhausted')
+    throw new Error('Gemini HTTP 429')
+  }
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`)
   return parseResponse(await res.json(), items.map((i) => i.id))
 }

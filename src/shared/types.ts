@@ -25,5 +25,5 @@ export interface EstimateRequest {
 export interface EstimateResponse {
   ok: boolean
   results?: Record<string, Nutrition> // id -> nutrition (only successful ones)
-  error?: 'NO_API_KEY' | 'API_ERROR'
+  error?: 'NO_API_KEY' | 'API_ERROR' | 'RATE_LIMIT'
 }

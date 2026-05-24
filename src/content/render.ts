@@ -162,6 +162,11 @@ export function markButtonError(btn: HTMLButtonElement): void {
   btn.innerHTML = `${LEAF}<span class="no-btn-label">לא הצלחנו — נסו שוב</span>`
 }
 
+export function markButtonRateLimited(btn: HTMLButtonElement): void {
+  btn.disabled = false
+  btn.innerHTML = `${LEAF}<span class="no-btn-label">חריגה ממכסת Gemini — נסו מאוחר יותר</span>`
+}
+
 // --- Menu-grid badge (kept for a possible future per-card mode; not auto-rendered) ---
 
 function ensureBadge(anchor: HTMLElement): HTMLElement {

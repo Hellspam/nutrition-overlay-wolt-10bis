@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Nutrition Overlay (Wolt & 10bis)",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Estimated calories + macros on Wolt and 10bis menu items.",
   "icons": {
     "16": "icons/icon-16.png",

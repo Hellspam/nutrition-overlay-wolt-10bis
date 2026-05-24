@@ -1,6 +1,14 @@
 import type { SiteAdapter } from './adapters/types'
 import type { EstimateResponse, MenuItem, Nutrition } from '../shared/types'
-import { renderBadge, renderError, BADGE_CLASS } from './render'
+import {
+  renderBadge,
+  renderError,
+  ensureStyles,
+  renderTotalCard,
+  createNutritionButton,
+  markButtonLoading,
+  markButtonError,
+} from './render'
 import { sumNutrition } from '../core/nutrition'
 import { hashText } from '../core/hash'
 
@@ -50,8 +58,8 @@ const ZERO: Nutrition = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }
 /**
  * Inject a "calculate nutrition" button into an open item modal. Only when the
  * user clicks it do we send ONE grouped request (the base dish + all its options).
- * After it resolves we show the total and update it live as options are toggled —
- * no further API calls. Idempotent per modal.
+ * After it resolves we show the total card and update it live as options are
+ * toggled — no further API calls. Idempotent per modal.
  */
 export function wireModalButton(
   adapter: SiteAdapter,
@@ -61,24 +69,15 @@ export function wireModalButton(
 ): void {
   if ((modal as any).__nutritionWired) return
   ;(modal as any).__nutritionWired = true
+  ensureStyles()
 
   const anchor = adapter.getModalTotalAnchor(modal) ?? modal
-  const btn = document.createElement('button')
-  btn.type = 'button'
-  btn.className = BADGE_CLASS + '-btn'
-  btn.setAttribute('dir', 'rtl')
-  btn.textContent = '🔢 חשב ערכים תזונתיים'
-  Object.assign(btn.style, {
-    display: 'block', width: '100%', margin: '8px 0', padding: '8px 12px',
-    fontSize: '13px', fontWeight: '600', cursor: 'pointer', borderRadius: '8px',
-    border: '1px solid currentColor', background: 'transparent', color: 'inherit',
-  } as Partial<CSSStyleDeclaration>)
+  const btn = createNutritionButton()
   if (anchor.parentElement) anchor.parentElement.insertBefore(btn, anchor)
   else anchor.appendChild(btn)
 
   btn.addEventListener('click', async () => {
-    btn.disabled = true
-    btn.textContent = 'מחשב…'
+    markButtonLoading(btn)
 
     const options = adapter.findModalOptions(modal)
     const reqItems = [
@@ -93,8 +92,7 @@ export function wireModalButton(
       resp = { ok: false, error: 'API_ERROR' }
     }
     if (!resp.ok || !resp.results) {
-      btn.disabled = false
-      btn.textContent = '🔢 נכשל — נסו שוב'
+      markButtonError(btn)
       return
     }
 
@@ -109,25 +107,9 @@ export function wireModalButton(
       const selected = options
         .map((o, i) => (o.input.checked ? optN[i] : undefined))
         .filter((n): n is Nutrition => !!n)
-      renderTotal(anchor, sumNutrition([baseN, ...selected]))
+      renderTotalCard(anchor, sumNutrition([baseN, ...selected]))
     }
     options.forEach((o) => o.input.addEventListener('change', recompute))
     recompute()
   })
-}
-
-function renderTotal(anchor: HTMLElement, n: Nutrition): void {
-  // The total is inserted as a sibling before the anchor, so search the parent scope
-  // (not inside the anchor) to find and reuse it — otherwise each recompute duplicates it.
-  const scope = anchor.parentElement ?? anchor
-  let el = scope.querySelector<HTMLElement>('.' + BADGE_CLASS + '-total')
-  if (!el) {
-    el = document.createElement('div')
-    el.className = BADGE_CLASS + '-total'
-    el.setAttribute('dir', 'rtl')
-    Object.assign(el.style, { fontSize: '13px', fontWeight: '600', margin: '6px 0' } as Partial<CSSStyleDeclaration>)
-    if (anchor.parentElement) anchor.parentElement.insertBefore(el, anchor)
-    else anchor.appendChild(el)
-  }
-  el.textContent = `סה"כ ~${n.calories} קל' · חלבון ${n.protein_g} · פחמ' ${n.carbs_g} · שומן ${n.fat_g}`
 }

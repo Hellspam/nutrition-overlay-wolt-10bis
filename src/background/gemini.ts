@@ -5,7 +5,11 @@ export interface GeminiItem { id: string; name: string; description: string }
 
 interface RequestBody {
   contents: { parts: { text: string }[] }[]
-  generationConfig: { responseMimeType: string; temperature: number }
+  generationConfig: {
+    responseMimeType: string
+    temperature: number
+    thinkingConfig: { thinkingBudget: number }
+  }
 }
 
 export function buildRequestBody(items: GeminiItem[]): RequestBody {
@@ -21,7 +25,12 @@ export function buildRequestBody(items: GeminiItem[]): RequestBody {
     `Items:\n${list}`
   return {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
+    // thinkingBudget:0 disables Gemini "thinking" — clean JSON in ~1.5s instead of ~15s.
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   }
 }
 

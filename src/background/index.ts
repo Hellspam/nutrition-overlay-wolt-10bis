@@ -1,7 +1,7 @@
 import { RateLimitedQueue } from './queue'
 import { callGemini, type GeminiItem } from './gemini'
 import { getCached, setCached } from '../core/cache'
-import { MAX_RPM, BATCH_SIZE, API_KEY_STORAGE_KEY } from '../shared/constants'
+import { MAX_RPM, API_KEY_STORAGE_KEY } from '../shared/constants'
 import type { EstimateRequest, EstimateResponse, Nutrition } from '../shared/types'
 
 const queue = new RateLimitedQueue({ minSpacingMs: Math.ceil(60000 / MAX_RPM), maxRetries: 3, baseBackoffMs: 2000 })
@@ -10,12 +10,6 @@ async function getApiKey(): Promise<string | null> {
   const out = await chrome.storage.local.get(API_KEY_STORAGE_KEY)
   const key = out[API_KEY_STORAGE_KEY]
   return typeof key === 'string' && key.trim() ? key.trim() : null
-}
-
-function chunk<T>(arr: T[], n: number): T[][] {
-  const out: T[][] = []
-  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n))
-  return out
 }
 
 async function handleEstimate(req: EstimateRequest): Promise<EstimateResponse> {
@@ -33,14 +27,13 @@ async function handleEstimate(req: EstimateRequest): Promise<EstimateResponse> {
   if (!apiKey) return { ok: false, error: 'NO_API_KEY', results }
 
   try {
-    for (const batch of chunk(misses, BATCH_SIZE)) {
-      const map = await queue.add(() => callGemini(apiKey, batch))
-      for (const it of batch) {
-        const n = map.get(it.id)
-        if (n) {
-          results[it.id] = n
-          await setCached(it.name + '\n' + it.description, n)
-        }
+    // One grouped request for all uncached items (the dish + all of its options).
+    const map = await queue.add(() => callGemini(apiKey, misses))
+    for (const it of misses) {
+      const n = map.get(it.id)
+      if (n) {
+        results[it.id] = n
+        await setCached(it.name + '\n' + it.description, n)
       }
     }
     return { ok: true, results }

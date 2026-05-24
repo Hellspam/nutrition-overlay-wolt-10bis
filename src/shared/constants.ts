@@ -1,6 +1,8 @@
 // Confirm GEMINI_MODEL is a current, free-tier model at wire-up time:
 // https://ai.google.dev/gemini-api/docs/models  and  /docs/rate-limits
-export const GEMINI_MODEL = 'gemini-2.5-flash'
+// gemini-3.5-flash with thinkingBudget:0 returns clean JSON in ~1.5s (vs ~15s when
+// 2.5-flash "thinks"). Thinking is disabled in gemini.ts buildRequestBody.
+export const GEMINI_MODEL = 'gemini-3.5-flash'
 export const GEMINI_ENDPOINT =
   `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 export const MAX_RPM = 10            // requests per minute (free-tier safe default)

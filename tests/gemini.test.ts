@@ -10,6 +10,7 @@ describe('buildRequestBody', () => {
   it('asks for JSON and includes every item id in the prompt', () => {
     const body = buildRequestBody(items)
     expect(body.generationConfig.responseMimeType).toBe('application/json')
+    expect(body.generationConfig.thinkingConfig.thinkingBudget).toBe(0)
     const text = body.contents[0].parts[0].text
     expect(text).toContain('a')
     expect(text).toContain('b')

@@ -22,6 +22,7 @@ const opts = (e) => ({
   bundle: true,
   format: 'iife', // self-contained; no runtime import() that a page CSP could block
   target: 'chrome110',
+  charset: 'utf8', // keep Hebrew literals as UTF-8 instead of \uXXXX escapes
   legalComments: 'none',
   logLevel: 'info',
 })

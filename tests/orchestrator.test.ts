@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { processItems, wireModal, resolveModalBase } from '../src/content/orchestrator'
+import { processItems, wireModalButton, resolveModalBase } from '../src/content/orchestrator'
 import { BADGE_CLASS } from '../src/content/render'
 import type { SiteAdapter } from '../src/content/adapters/types'
 import type { MenuItem, ModalOption, Nutrition } from '../src/shared/types'
@@ -44,10 +44,19 @@ describe('processItems', () => {
   })
 })
 
-describe('wireModal', () => {
+describe('wireModalButton', () => {
   beforeEach(() => { document.body.innerHTML = '' })
 
-  it('updates the total as options are toggled (base + selected)', async () => {
+  it('injects a button and sends nothing until it is clicked', () => {
+    document.body.innerHTML = '<div role="dialog"><div id="total"></div></div>'
+    const fetchEstimates = vi.fn(async () => ({ ok: true, results: {} }))
+    const modal = document.querySelector<HTMLElement>('[role="dialog"]')!
+    wireModalButton(fakeAdapter([], []), modal, { id: 'BASE', name: 'x', description: '' }, fetchEstimates)
+    expect(document.querySelector('.' + BADGE_CLASS + '-btn')).toBeTruthy()
+    expect(fetchEstimates).not.toHaveBeenCalled()
+  })
+
+  it('on click sends ONE grouped request, then shows + live-updates the total', async () => {
     document.body.innerHTML =
       '<div role="dialog"><label><input type="checkbox">fries</label>' +
       '<label><input type="checkbox">rice</label><div id="total"></div></div>'
@@ -62,7 +71,18 @@ describe('wireModal', () => {
       results: Object.fromEntries(its.map((i) => [i.id, i.id === 'BASE' ? N(600) : i.id.includes('fries') ? N(310) : N(200)])),
     }))
     const modal = document.querySelector<HTMLElement>('[role="dialog"]')!
-    await wireModal(adapter, modal, { id: 'BASE', name: 'Shawarma', description: '' }, fetchEstimates)
+
+    wireModalButton(adapter, modal, { id: 'BASE', name: 'Shawarma', description: '' }, fetchEstimates)
+    const btn = document.querySelector<HTMLButtonElement>('.' + BADGE_CLASS + '-btn')!
+    expect(btn).toBeTruthy()
+    expect(fetchEstimates).not.toHaveBeenCalled()
+
+    btn.click()
+    await new Promise((r) => setTimeout(r)) // let the async click handler resolve
+
+    expect(fetchEstimates).toHaveBeenCalledTimes(1)
+    expect(fetchEstimates.mock.calls[0][0]).toHaveLength(3) // base + 2 options, ONE grouped request
+    expect(document.querySelector('.' + BADGE_CLASS + '-btn')).toBeNull() // button replaced by total
 
     const totalText = () => document.querySelector('.' + BADGE_CLASS + '-total')!.textContent ?? ''
     expect(totalText()).toContain('600')          // base only

@@ -30,6 +30,8 @@ const opts = (e) => ({
 function copyStatic() {
   copyFileSync('manifest.json', 'dist/manifest.json')
   copyFileSync('src/options/index.html', 'dist/options.html')
+  mkdirSync('dist/icons', { recursive: true })
+  for (const s of [16, 48, 128]) copyFileSync(`icons/icon-${s}.png`, `dist/icons/icon-${s}.png`)
 }
 
 function assertSelfContained() {

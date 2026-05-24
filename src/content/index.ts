@@ -1,7 +1,7 @@
 import { woltAdapter } from './adapters/wolt'
 import { tenbisAdapter } from './adapters/tenbis'
 import type { SiteAdapter } from './adapters/types'
-import { processItems, wireModal } from './orchestrator'
+import { processItems, wireModal, resolveModalBase } from './orchestrator'
 import { requestEstimates } from '../core/messaging'
 import { renderNoKeyPrompt } from './render'
 
@@ -27,7 +27,7 @@ function start(adapter: SiteAdapter) {
       const modal = adapter.findOpenModal(document)
       if (modal) {
         const items = adapter.findItems(document)
-        const base = items.find((it) => modal.textContent?.includes(it.name)) ?? items[0]
+        const base = resolveModalBase(adapter, modal, items)
         if (base) void wireModal(adapter, modal, base, fetchEstimates)
       }
     }, 400)

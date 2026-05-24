@@ -34,4 +34,12 @@ describe('tenbisAdapter', () => {
       expect(['checkbox', 'radio']).toContain(o.input.type)
     }
   })
+
+  it('reads the modal item name and description from the fixture', () => {
+    const doc = load('tenbis-modal.html')
+    const modal = tenbisAdapter.findOpenModal(doc) ?? doc.body
+    const item = tenbisAdapter.getModalItem(modal as HTMLElement)
+    expect(item?.name).toBe('דיל לאפה שווארמה מיקס')
+    expect((item?.description.length ?? 0)).toBeGreaterThan(0)
+  })
 })

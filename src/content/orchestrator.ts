@@ -1,7 +1,8 @@
 import type { SiteAdapter } from './adapters/types'
-import type { EstimateResponse, Nutrition } from '../shared/types'
+import type { EstimateResponse, MenuItem, Nutrition } from '../shared/types'
 import { renderBadge, renderError, BADGE_CLASS } from './render'
 import { sumNutrition } from '../core/nutrition'
+import { hashText } from '../core/hash'
 
 type FetchEstimates = (
   items: { id: string; name: string; description: string }[],
@@ -27,7 +28,22 @@ export async function processItems(
   }
 }
 
-interface BaseRef { id: string; name: string; description: string }
+export interface BaseRef { id: string; name: string; description: string }
+
+export function resolveModalBase(
+  adapter: SiteAdapter,
+  modal: HTMLElement,
+  items: MenuItem[],
+): BaseRef | null {
+  const m = adapter.getModalItem(modal)
+  if (m?.name) {
+    const match = items.find((it) => it.name === m.name)
+    if (match) return { id: match.id, name: match.name, description: match.description }
+    return { id: hashText(m.name + '\n' + m.description), name: m.name, description: m.description }
+  }
+  const guess = items.find((it) => modal.textContent?.includes(it.name)) ?? items[0]
+  return guess ? { id: guess.id, name: guess.name, description: guess.description } : null
+}
 
 export async function wireModal(
   adapter: SiteAdapter,

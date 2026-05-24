@@ -76,4 +76,10 @@ export const woltAdapter: SiteAdapter = {
       modalRoot.querySelector<HTMLElement>('footer, button')
     )
   },
+
+  getModalItem(modalRoot) {
+    const name = text(modalRoot.querySelector('h2'))
+    if (!name) return null
+    return { name, description: '' }
+  },
 }

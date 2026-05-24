@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { processItems, wireModal } from '../src/content/orchestrator'
+import { processItems, wireModal, resolveModalBase } from '../src/content/orchestrator'
 import { BADGE_CLASS } from '../src/content/render'
 import type { SiteAdapter } from '../src/content/adapters/types'
 import type { MenuItem, ModalOption, Nutrition } from '../src/shared/types'
 
 const N = (c: number): Nutrition => ({ calories: c, protein_g: 1, carbs_g: 1, fat_g: 1 })
 
-function fakeAdapter(items: MenuItem[], options: ModalOption[]): SiteAdapter {
+function fakeAdapter(items: MenuItem[], options: ModalOption[], modalItem: { name: string; description: string } | null = null): SiteAdapter {
   return {
     matches: () => true,
     observeRoot: () => document.body,
@@ -14,6 +14,7 @@ function fakeAdapter(items: MenuItem[], options: ModalOption[]): SiteAdapter {
     findOpenModal: () => document.querySelector('[role="dialog"]'),
     findModalOptions: () => options,
     getModalTotalAnchor: () => document.querySelector('#total'),
+    getModalItem: () => modalItem,
   }
 }
 
@@ -71,5 +72,27 @@ describe('wireModal', () => {
     expect(totalText()).toContain('1110')         // + rice
     inputs[0].checked = false; inputs[0].dispatchEvent(new Event('change', { bubbles: true }))
     expect(totalText()).toContain('800')          // base + rice
+  })
+})
+
+describe('resolveModalBase', () => {
+  beforeEach(() => { document.body.innerHTML = '<div role="dialog">דיל לאפה שווארמה מיקס</div>' })
+  const mk = (name: string): MenuItem => ({ id: 'id:' + name, name, description: '', priceText: '', anchor: document.createElement('div') })
+
+  it('prefers an exact name match over a substring collision', () => {
+    const items = [mk('שווארמה'), mk('דיל לאפה שווארמה מיקס')]
+    const modal = document.querySelector<HTMLElement>('[role="dialog"]')!
+    const adapter = fakeAdapter(items, [], { name: 'דיל לאפה שווארמה מיקס', description: '' })
+    const base = resolveModalBase(adapter, modal, items)
+    expect(base?.name).toBe('דיל לאפה שווארמה מיקס')
+    expect(base?.id).toBe('id:דיל לאפה שווארמה מיקס')
+  })
+
+  it('derives a base from the modal when no card matches', () => {
+    const modal = document.querySelector<HTMLElement>('[role="dialog"]')!
+    const adapter = fakeAdapter([], [], { name: 'New Dish', description: 'tasty' })
+    const base = resolveModalBase(adapter, modal, [])
+    expect(base?.name).toBe('New Dish')
+    expect((base?.id.length ?? 0)).toBeGreaterThan(0)
   })
 })

@@ -65,4 +65,11 @@ export const tenbisAdapter: SiteAdapter = {
   getModalTotalAnchor(modalRoot) {
     return modalRoot.querySelector<HTMLElement>('[data-test-id="submitDishBtn"]')
   },
+
+  getModalItem(modalRoot) {
+    const name = text(modalRoot.querySelector('[data-test-id="dishNameLabel"]'))
+    if (!name) return null
+    const description = text(modalRoot.querySelector('[data-test-id="dishDescriptionLabel"]'))
+    return { name, description }
+  },
 }

@@ -13,4 +13,6 @@ export interface SiteAdapter {
   getModalTotalAnchor(modalRoot: HTMLElement): HTMLElement | null
   /** Detect an open item modal within a mutation, or null. */
   findOpenModal(root: ParentNode): HTMLElement | null
+  /** The base item's name + description read from an OPEN modal, or null if not derivable. */
+  getModalItem(modalRoot: HTMLElement): { name: string; description: string } | null
 }

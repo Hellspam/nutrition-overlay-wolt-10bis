@@ -35,4 +35,11 @@ describe('woltAdapter', () => {
       expect(['checkbox', 'radio']).toContain(o.input.type)
     }
   })
+
+  it('reads the modal item name from the h2', () => {
+    const doc = load('wolt-modal.html')
+    const modal = woltAdapter.findOpenModal(doc) ?? doc.body
+    const item = woltAdapter.getModalItem(modal as HTMLElement)
+    expect(item?.name.length).toBeGreaterThan(0)
+  })
 })

@@ -3,6 +3,7 @@ import type { Nutrition } from '../shared/types'
 export const BADGE_CLASS = 'nutrition-overlay-badge'
 const TOTAL_CLASS = BADGE_CLASS + '-total'
 const BTN_CLASS = BADGE_CLASS + '-btn'
+const HOST_CLASS = BADGE_CLASS + '-host'
 const STYLE_ID = 'nutrition-overlay-style'
 
 // A small inline leaf mark — no external assets / webfonts, so nothing to be
@@ -16,16 +17,23 @@ const LEAF =
 // <style> (style-src is unrestricted / 'unsafe-inline'), and giving the widget
 // its own opaque surface keeps it legible on light OR dark host menus.
 const CSS = `
-.${TOTAL_CLASS}, .${TOTAL_CLASS} *, .${BTN_CLASS}, .${BTN_CLASS} * {
+.${HOST_CLASS}, .${HOST_CLASS} *, .${TOTAL_CLASS}, .${TOTAL_CLASS} *, .${BTN_CLASS}, .${BTN_CLASS} * {
   box-sizing: border-box; margin: 0; padding: 0;
   font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
+/* Floating panel pinned to the modal's top-right corner — out of the modal's
+   layout flow so it never overlaps the stepper / submit button. */
+.${HOST_CLASS} {
+  position: absolute; top: 14px; right: 14px; z-index: 40;
+  width: 280px; max-width: 44vw;
+  display: flex; flex-direction: column; pointer-events: auto;
+}
 .${TOTAL_CLASS} {
   direction: rtl; display: block; position: relative; overflow: hidden; text-align: right;
-  margin: 10px 0; padding: 13px 16px 11px;
+  padding: 13px 16px 11px;
   background: #ffffff; color: #15241d;
   border: 1px solid rgba(20,45,33,.08); border-radius: 16px;
-  box-shadow: 0 12px 30px -12px rgba(16,90,60,.32), 0 2px 5px -2px rgba(20,45,33,.10);
+  box-shadow: 0 14px 34px -12px rgba(16,90,60,.36), 0 2px 6px -2px rgba(20,45,33,.14);
   line-height: 1.2;
   animation: no-pop .28s cubic-bezier(.2,.85,.25,1) both;
 }
@@ -57,15 +65,15 @@ const CSS = `
 .${TOTAL_CLASS} .no-foot .no-ico { opacity: .7; }
 .${BTN_CLASS} {
   direction: rtl; display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; margin: 10px 0; padding: 12px 16px;
+  width: 100%; padding: 12px 16px;
   font-size: 13.5px; font-weight: 700; color: #fff; cursor: pointer; letter-spacing: .2px;
   background: linear-gradient(135deg, #28a86e, #13794e);
   border: 0; border-radius: 13px;
-  box-shadow: 0 8px 18px -7px rgba(19,121,78,.65);
+  box-shadow: 0 10px 22px -8px rgba(19,121,78,.7);
   transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
 }
 .${BTN_CLASS} .no-ico { flex: none; }
-.${BTN_CLASS}:hover { transform: translateY(-1px); box-shadow: 0 12px 24px -7px rgba(19,121,78,.75); filter: brightness(1.06); }
+.${BTN_CLASS}:hover { transform: translateY(-1px); box-shadow: 0 14px 26px -8px rgba(19,121,78,.8); filter: brightness(1.06); }
 .${BTN_CLASS}:active { transform: translateY(0); filter: brightness(.95); }
 .${BTN_CLASS}:disabled { cursor: default; opacity: .92; transform: none; filter: saturate(.85); }
 .${BTN_CLASS} .no-spin {
@@ -86,6 +94,26 @@ export function ensureStyles(): void {
   ;(document.head || document.documentElement).appendChild(style)
 }
 
+/**
+ * The floating container for our widget, pinned to the modal's top-right corner.
+ * Appended to the modal so it tracks it, and out of the modal's flow so it never
+ * disturbs the host layout. Created once per modal.
+ */
+export function ensureHost(modal: HTMLElement): HTMLElement {
+  ensureStyles()
+  let host = modal.querySelector<HTMLElement>('.' + HOST_CLASS)
+  if (!host) {
+    // Give the modal a positioning context if it doesn't already have one
+    // (relative with no offsets doesn't move it — only anchors our absolute child).
+    if (getComputedStyle(modal).position === 'static') modal.style.position = 'relative'
+    host = document.createElement('div')
+    host.className = HOST_CLASS
+    host.setAttribute('dir', 'rtl')
+    modal.appendChild(host)
+  }
+  return host
+}
+
 const CARD_HTML =
   `<div class="no-cal"><span class="no-cal-num" data-no="cal">~0</span><span class="no-cal-unit">קלוריות</span></div>` +
   `<div class="no-macros">` +
@@ -95,18 +123,16 @@ const CARD_HTML =
   `</div>` +
   `<div class="no-foot">${LEAF}<span>הערכת AI · ערכים משוערים</span></div>`
 
-/** Create or update the nutrition total card, inserted just before `anchor`. */
-export function renderTotalCard(anchor: HTMLElement, n: Nutrition): void {
+/** Create or update the nutrition total card inside `container` (the floating host). */
+export function renderTotalCard(container: HTMLElement, n: Nutrition): void {
   ensureStyles()
-  const scope = anchor.parentElement ?? anchor
-  let el = scope.querySelector<HTMLElement>('.' + TOTAL_CLASS)
+  let el = container.querySelector<HTMLElement>('.' + TOTAL_CLASS)
   if (!el) {
     el = document.createElement('div')
     el.className = TOTAL_CLASS
     el.setAttribute('dir', 'rtl')
     el.innerHTML = CARD_HTML
-    if (anchor.parentElement) anchor.parentElement.insertBefore(el, anchor)
-    else anchor.appendChild(el)
+    container.appendChild(el)
   }
   const cal = el.querySelector<HTMLElement>('[data-no="cal"]')!
   cal.textContent = '~' + n.calories
@@ -137,11 +163,6 @@ export function markButtonLoading(btn: HTMLButtonElement): void {
 export function markButtonError(btn: HTMLButtonElement): void {
   btn.disabled = false
   btn.innerHTML = `${LEAF}<span class="no-btn-label">לא הצלחנו — נסו שוב</span>`
-}
-
-/** Remove our injected button/card from a modal (e.g. before re-wiring a reused container). */
-export function clearNutritionUI(root: HTMLElement): void {
-  root.querySelectorAll('.' + BTN_CLASS + ', .' + TOTAL_CLASS).forEach((el) => el.remove())
 }
 
 // --- Menu-grid badge (kept for a possible future per-card mode; not auto-rendered) ---

@@ -3,12 +3,11 @@ import type { EstimateResponse, MenuItem, Nutrition } from '../shared/types'
 import {
   renderBadge,
   renderError,
-  ensureStyles,
+  ensureHost,
   renderTotalCard,
   createNutritionButton,
   markButtonLoading,
   markButtonError,
-  clearNutritionUI,
 } from './render'
 import { sumNutrition } from '../core/nutrition'
 import { hashText } from '../core/hash'
@@ -68,20 +67,18 @@ export function wireModalButton(
   base: BaseRef,
   fetchEstimates: FetchEstimates,
 ): void {
-  // The modal content can stream in after its shell (Wolt does this), so the anchor
-  // may not exist on the first observer fire. Bail WITHOUT marking until it does —
-  // a later mutation retries and wires the populated modal.
-  const anchor = adapter.getModalTotalAnchor(modal)
-  if (!anchor) return
+  // Wolt streams modal content in after the shell, so the anchor (its add-to-cart
+  // button) may be absent on the first observer fire. Use it only as a readiness
+  // signal: bail WITHOUT marking until it exists, so a later mutation retries.
+  if (!adapter.getModalTotalAnchor(modal)) return
   // Idempotent per dish; re-wire if a reused container now shows a different dish.
   if ((modal as any).__nutritionBase === base.id) return
   ;(modal as any).__nutritionBase = base.id
-  clearNutritionUI(modal)
-  ensureStyles()
 
+  const host = ensureHost(modal) // floating panel pinned to the modal's top-right
+  host.textContent = '' // clear any stale widget (reused container / previous dish)
   const btn = createNutritionButton()
-  if (anchor.parentElement) anchor.parentElement.insertBefore(btn, anchor)
-  else anchor.appendChild(btn)
+  host.appendChild(btn)
 
   btn.addEventListener('click', async () => {
     markButtonLoading(btn)
@@ -107,14 +104,14 @@ export function wireModalButton(
     const baseN = results[base.id] ?? ZERO
     // Per-option values are fetched once now so toggling is instant (no new calls).
     const optN: (Nutrition | undefined)[] = options.map((o, i) => results[`opt:${i}:${o.label}`])
-    btn.remove()
+    host.textContent = '' // remove the button; the card takes its place
 
     // The displayed total = base + only the SELECTED options, recomputed on every toggle.
     const recompute = () => {
       const selected = options
         .map((o, i) => (o.input.checked ? optN[i] : undefined))
         .filter((n): n is Nutrition => !!n)
-      renderTotalCard(anchor, sumNutrition([baseN, ...selected]))
+      renderTotalCard(host, sumNutrition([baseN, ...selected]))
     }
     options.forEach((o) => o.input.addEventListener('change', recompute))
     recompute()

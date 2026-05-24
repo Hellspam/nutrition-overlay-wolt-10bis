@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { buildRequestBody, parseResponse, callGemini } from '../src/background/gemini'
+import { GEMINI_THINKING_BUDGET } from '../src/shared/constants'
 
 const items = [
   { id: 'a', name: 'פלאפל בפיתה', description: 'עם חומוס וסלט' },
@@ -10,7 +11,7 @@ describe('buildRequestBody', () => {
   it('asks for JSON and includes every item id in the prompt', () => {
     const body = buildRequestBody(items)
     expect(body.generationConfig.responseMimeType).toBe('application/json')
-    expect(body.generationConfig.thinkingConfig.thinkingBudget).toBe(0)
+    expect(body.generationConfig.thinkingConfig.thinkingBudget).toBe(GEMINI_THINKING_BUDGET)
     const text = body.contents[0].parts[0].text
     expect(text).toContain('a')
     expect(text).toContain('b')

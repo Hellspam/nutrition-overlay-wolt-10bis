@@ -16,7 +16,7 @@ pick add‑ons.
   nothing is sent until you ask.
 - ➕ **Live totals** — toggle add‑ons (fries, rice, extras) and the total updates instantly,
   with no extra API calls.
-- ⚡ **Fast** — one grouped request per item using Google **Gemini 3.5 Flash** (~1–2s).
+- ⚡ **Fast** — one grouped request per item using Google **Gemini 3.5 Flash** (a few seconds).
 - 💾 **Cached** — each item is only looked up once.
 - 🔒 **Local & private** — your API key and cached results live only in your browser.
 - 🌐 Runs **only** on `wolt.com` and `10bis.co.il`, with a right‑to‑left Hebrew UI.
@@ -38,7 +38,7 @@ Each person uses their **own** free Gemini key — it’s stored locally and onl
   name, description, and option labels from the page and injects the nutrition widget,
   right‑aligned, just above the options.
 - A **background service worker** holds the API key and sends one grouped request — the dish
-  plus all of its options — to Gemini (thinking disabled for speed), validates the JSON, and
+  plus all of its options — to Gemini (with a small thinking budget), validates the JSON, and
   caches every result by a hash of the text.
 - Toggling options recomputes `base + Σ(selected)` **client‑side** — no further API calls.
 - The extension is bundled into self‑contained scripts (esbuild), so it runs on these sites’

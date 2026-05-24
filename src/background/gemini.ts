@@ -1,4 +1,4 @@
-import { GEMINI_ENDPOINT } from '../shared/constants'
+import { GEMINI_ENDPOINT, GEMINI_THINKING_BUDGET } from '../shared/constants'
 import type { Nutrition } from '../shared/types'
 
 export interface GeminiItem { id: string; name: string; description: string }
@@ -25,11 +25,11 @@ export function buildRequestBody(items: GeminiItem[]): RequestBody {
     `Items:\n${list}`
   return {
     contents: [{ parts: [{ text: prompt }] }],
-    // thinkingBudget:0 disables Gemini "thinking" — clean JSON in ~1.5s instead of ~15s.
+    // A small thinking budget improves estimates for complex items; see GEMINI_THINKING_BUDGET.
     generationConfig: {
       responseMimeType: 'application/json',
       temperature: 0.2,
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: { thinkingBudget: GEMINI_THINKING_BUDGET },
     },
   }
 }

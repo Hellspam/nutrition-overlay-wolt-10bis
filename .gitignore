@@ -3,3 +3,8 @@ dist/
 .DS_Store
 *.local
 nutrition-overlay.zip
+
+# ad-hoc verification scripts
+*.entry.ts
+vrun.mjs
+shot.mjs

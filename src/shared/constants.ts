@@ -10,6 +10,6 @@ export const GEMINI_ENDPOINT =
 export const GEMINI_THINKING_BUDGET = 512
 export const MAX_RPM = 10            // requests per minute (free-tier safe default)
 export const BATCH_SIZE = 12         // items per Gemini request
-export const CACHE_SCHEMA_VERSION = 2 // bump to invalidate all cached estimates
+export const CACHE_SCHEMA_VERSION = 3 // bump to invalidate all cached estimates
 export const CACHE_PREFIX = 'nut:'    // chrome.storage.local key prefix
 export const API_KEY_STORAGE_KEY = 'geminiApiKey'

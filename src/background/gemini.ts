@@ -18,10 +18,13 @@ export function buildRequestBody(items: GeminiItem[]): RequestBody {
     .join('\n')
   const prompt =
     `You are a nutrition estimator. For each food item below (text may be Hebrew), ` +
-    `estimate the nutrition for ONE standard serving as typically sold. ` +
+    `estimate the nutrition for the ENTIRE item as sold — the full portion you receive for ` +
+    `this listing (the whole dish, sandwich, container, or whole cake), NOT a single slice and ` +
+    `NOT a per-100g amount. Use any size or weight hints in the text (centimeters, grams, ` +
+    `liters, pieces, "whole"/"שלם") to judge the true portion size. ` +
     `Return ONLY a JSON array, one object per item, in this exact shape (match by id):\n` +
     `[{"id": string, "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number}]\n` +
-    `All numbers are per single serving, non-negative, grams for macros. No prose, no markdown.\n\n` +
+    `All numbers are for the entire item as sold, non-negative, grams for macros. No prose, no markdown.\n\n` +
     `Items:\n${list}`
   return {
     contents: [{ parts: [{ text: prompt }] }],

@@ -12,7 +12,7 @@ export default defineManifest({
     'https://generativelanguage.googleapis.com/*',
   ],
   background: { service_worker: 'src/background/index.ts', type: 'module' },
-  // options_page: 'src/options/index.html', // re-added in a later task (src/options/index.html does not exist yet)
+  options_page: 'src/options/index.html',
   content_scripts: [
     {
       matches: ['https://*.10bis.co.il/*', 'https://*.wolt.com/*'],

@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Roy Arnon",
+  "license": "MIT",
   "devDependencies": {
     "@types/chrome": "^0.1.42",
     "@types/jsdom": "^28.0.3",

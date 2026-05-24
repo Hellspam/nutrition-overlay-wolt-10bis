@@ -1,10 +1,18 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
-.DS_Store
-*.local
 nutrition-overlay.zip
 
-# ad-hoc verification scripts
+# OS / editor cruft
+.DS_Store
+*.local
+.vscode/
+.idea/
+
+# Ad-hoc verification / preview scripts (not part of the project)
 *.entry.ts
 vrun.mjs
 shot.mjs
+render-icons.mjs

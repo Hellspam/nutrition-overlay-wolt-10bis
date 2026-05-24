@@ -1,68 +1,84 @@
-# Nutrition Overlay — Wolt & 10bis
+# Nutrition Overlay for Wolt & 10bis
 
-A Chrome extension that adds **estimated** calories + macros (protein / carbs / fat)
-to menu items on **wolt.com** and **10bis.co.il**, and updates the totals live as you
-pick add-on options in an item's modal.
+A Chrome extension that adds **AI‑estimated calories + macros** (protein / carbs / fat)
+to menu items on **wolt.com** and **10bis.co.il** — with the total updating live as you
+pick add‑ons.
 
-Estimates come from Google Gemini based on each item's name and description, so they
-are **approximate** — every badge is marked `~הערכה` (estimate).
+![The nutrition card shown inside a menu item on light and dark menus](docs/preview.png)
 
-![menu badges and a live-updating modal total]( docs/screenshot.png )
-<!-- optional: drop a screenshot at docs/screenshot.png -->
+> ⚠️ Values are **AI estimates** and approximate — not a substitute for official
+> nutrition information or medical advice.
 
-## Install (load unpacked)
+## Features
 
-1. Download and unzip `nutrition-overlay.zip` (or build from source — see below).
-2. Go to `chrome://extensions`, enable **Developer mode** (top-right).
-3. Click **Load unpacked** and select the **`dist/`** folder.
-4. Open the extension's **Details → Extension options**, paste a **free Gemini API key**
-   from <https://aistudio.google.com/apikey>, and click **שמירה** (Save).
-5. Open any Wolt or 10bis restaurant menu — calorie/macro badges appear on the items
-   automatically, and open an item to see its total update as you select add-ons.
+- 🥗 Estimated **calories + protein / carbs / fat** for any dish.
+- 👆 **On demand** — open an item and tap **“חשב ערכים תזונתיים” (Calculate nutrition)**;
+  nothing is sent until you ask.
+- ➕ **Live totals** — toggle add‑ons (fries, rice, extras) and the total updates instantly,
+  with no extra API calls.
+- ⚡ **Fast** — one grouped request per item using Google **Gemini 3.5 Flash** (~1–2s).
+- 💾 **Cached** — each item is only looked up once.
+- 🔒 **Local & private** — your API key and cached results live only in your browser.
+- 🌐 Runs **only** on `wolt.com` and `10bis.co.il`, with a right‑to‑left Hebrew UI.
 
-The key is stored locally in your browser (`chrome.storage.local`) and is used only to
-call Gemini. Each person who installs the extension uses **their own** free key.
+## Install (unpacked)
+
+1. Download and unzip `nutrition-overlay.zip` (or build it yourself — see below).
+2. Open `chrome://extensions` and turn on **Developer mode** (top‑right).
+3. Click **Load unpacked** and select the unzipped folder (the one containing `manifest.json`).
+4. Open the extension’s **Details → Extension options**, paste a **free** Gemini API key from
+   <https://aistudio.google.com/apikey>, and click **Save**.
+5. Open any item on Wolt or 10bis and click **Calculate nutrition**.
+
+Each person uses their **own** free Gemini key — it’s stored locally and only used to call Google.
 
 ## How it works
 
-- A content script reads each item's name + description from the page and renders a
-  badge styled to match the site (RTL Hebrew).
-- A background service worker holds the API key and sends item text to Gemini in
-  batched, rate-limited requests, then caches every result locally (keyed by a hash of
-  the text) so each item is only ever queried once.
-- When an item modal is open, the base item and each add-on option are estimated once;
-  toggling options recomputes `base + Σ(selected)` instantly client-side — no extra API
-  calls per toggle.
+- A **content script** (with a small per‑site adapter for Wolt and 10bis) reads the dish’s
+  name, description, and option labels from the page and injects the nutrition widget,
+  right‑aligned, just above the options.
+- A **background service worker** holds the API key and sends one grouped request — the dish
+  plus all of its options — to Gemini (thinking disabled for speed), validates the JSON, and
+  caches every result by a hash of the text.
+- Toggling options recomputes `base + Σ(selected)` **client‑side** — no further API calls.
+- The extension is bundled into self‑contained scripts (esbuild), so it runs on these sites’
+  strict Content‑Security‑Policy without loading any remote code.
 
 ## Build from source
 
 ```bash
 npm install
 npm run build       # outputs dist/  (load this unpacked)
-npm test            # unit + adapter tests (Vitest)
+npm test            # unit + adapter tests (Vitest, against real captured DOM fixtures)
 npm run typecheck   # tsc --noEmit
 ```
 
-The site-specific DOM selectors live in `src/content/adapters/wolt.ts` and
-`src/content/adapters/tenbis.ts` and are tested against real captured markup in
-`tests/fixtures/`. If either site changes its markup and badges stop appearing,
-re-capture a fixture and adjust that adapter (see the adapter tests for the structure).
-
-## Packaging to share
+Package a shareable zip:
 
 ```bash
 npm run build
 cd dist && zip -r ../nutrition-overlay.zip . && cd ..
 ```
 
-Share `nutrition-overlay.zip`; recipients follow the install steps above and add their
-own free Gemini key.
+The site‑specific selectors live in `src/content/adapters/{wolt,tenbis}.ts` and are tested
+against real captured markup in `tests/fixtures/`. If a site changes its markup and the widget
+stops appearing, re‑capture a fixture and adjust that adapter.
 
-## Privacy & scope
+## Privacy
 
-- Runs **only** on `*.wolt.com` and `*.10bis.co.il` (enforced in the manifest and in code).
-- Sends **only** menu item text (names, descriptions, option labels) to Google Gemini
-  to estimate nutrition. No personal data is sent.
-- Your API key and the cached estimates stay in your browser's local storage.
-- Nutrition values are **estimates** and should not be relied on for medical or dietary
-  precision.
+Only menu item **text** (names, descriptions, option labels) is sent to Google Gemini to
+estimate nutrition. No accounts, tracking, analytics, or servers. Your API key and cached
+estimates stay in your browser. See [`PRIVACY.md`](PRIVACY.md) for the full policy.
+
+## Chrome Web Store
+
+Listing copy (EN + HE), single‑purpose statement, permission justifications, and a submission
+checklist are in [`STORE-LISTING.md`](STORE-LISTING.md). Icons (16/48/128) are in `icons/`.
+
+## Tech stack
+
+TypeScript · Manifest V3 · esbuild · Vitest + jsdom · Google Gemini API.
+
+## License
+
+[MIT](LICENSE).

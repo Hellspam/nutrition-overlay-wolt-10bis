@@ -37,3 +37,18 @@ export function renderError(anchor: HTMLElement): void {
   badge.textContent = "ערכים תזונתיים — לא זמין"
   badge.style.opacity = '0.5'
 }
+
+export function renderNoKeyPrompt(): void {
+  if (document.getElementById('nutrition-overlay-nokey')) return
+  const bar = document.createElement('div')
+  bar.id = 'nutrition-overlay-nokey'
+  bar.setAttribute('dir', 'rtl')
+  bar.textContent = 'תוסף ערכים תזונתיים: הגדירו מפתח Gemini חינמי בהגדרות התוסף ←'
+  Object.assign(bar.style, {
+    position: 'fixed', bottom: '12px', insetInlineStart: '12px', zIndex: '2147483647',
+    background: '#222', color: '#fff', padding: '8px 12px', borderRadius: '8px',
+    fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,.3)',
+  } as Partial<CSSStyleDeclaration>)
+  bar.addEventListener('click', () => chrome.runtime.openOptionsPage())
+  document.body.appendChild(bar)
+}

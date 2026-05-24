@@ -2,7 +2,7 @@ import { vi } from 'vitest'
 
 const store = new Map<string, unknown>()
 
-;(globalThis as any).chrome = {
+vi.stubGlobal('chrome', {
   storage: {
     local: {
       get: vi.fn(async (keys: string | string[]) => {
@@ -17,6 +17,6 @@ const store = new Map<string, unknown>()
     },
   },
   runtime: { sendMessage: vi.fn(), id: 'test-ext' },
-}
+})
 
 export function __clearStore() { store.clear() }

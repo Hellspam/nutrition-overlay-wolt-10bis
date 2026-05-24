@@ -16,14 +16,15 @@ const isRateLimit = (e: unknown) =>
   e instanceof Error && /\b429\b|rate/i.test(e.message)
 
 export class RateLimitedQueue {
-  private q: Job<any>[] = []
+  private q: Job<unknown>[] = []
   private running = false
   private lastStart = 0
   constructor(private opts: QueueOptions) {}
 
   add<T>(run: () => Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      this.q.push({ run, resolve, reject, attempts: 0 })
+      const job: Job<unknown> = { run, resolve: (v) => resolve(v as T), reject, attempts: 0 }
+      this.q.push(job)
       void this.drain()
     })
   }

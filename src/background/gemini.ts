@@ -40,24 +40,29 @@ function coerceNum(v: unknown): number | null {
   return Math.max(0, n)
 }
 
-function toNutrition(raw: any): Nutrition | null {
-  const calories = coerceNum(raw?.calories)
-  const protein_g = coerceNum(raw?.protein_g)
-  const carbs_g = coerceNum(raw?.carbs_g)
-  const fat_g = coerceNum(raw?.fat_g)
+function toNutrition(raw: unknown): Nutrition | null {
+  const o = (raw ?? {}) as Record<string, unknown>
+  const calories = coerceNum(o.calories)
+  const protein_g = coerceNum(o.protein_g)
+  const carbs_g = coerceNum(o.carbs_g)
+  const fat_g = coerceNum(o.fat_g)
   if (calories === null || protein_g === null || carbs_g === null || fat_g === null) return null
   return { calories, protein_g, carbs_g, fat_g }
 }
 
-export function parseResponse(envelope: any, _ids: string[]): Map<string, Nutrition> {
-  const text: string | undefined = envelope?.candidates?.[0]?.content?.parts?.[0]?.text
+interface GeminiEnvelope {
+  candidates?: { content?: { parts?: { text?: string }[] } }[]
+}
+
+export function parseResponse(envelope: GeminiEnvelope, _ids: string[]): Map<string, Nutrition> {
+  const text = envelope?.candidates?.[0]?.content?.parts?.[0]?.text
   if (!text) throw new Error('Gemini: empty candidate')
-  let arr: any
+  let arr: unknown
   try { arr = JSON.parse(text) } catch { throw new Error('Gemini: response was not JSON') }
   if (!Array.isArray(arr)) throw new Error('Gemini: expected a JSON array')
   const out = new Map<string, Nutrition>()
-  for (const entry of arr) {
-    const id = entry?.id
+  for (const entry of arr as unknown[]) {
+    const id = (entry as { id?: unknown }).id
     const n = toNutrition(entry)
     if (typeof id === 'string' && n) out.set(id, n)
   }

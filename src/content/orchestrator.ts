@@ -17,6 +17,7 @@ type FetchEstimates = (
 ) => Promise<EstimateResponse>
 
 const RENDERED = new WeakSet<HTMLElement>()
+const wiredModals = new WeakMap<HTMLElement, string>()
 
 export async function processItems(
   adapter: SiteAdapter,
@@ -74,8 +75,8 @@ export function wireModalButton(
   const anchor = adapter.getModalTotalAnchor(modal)
   if (!anchor) return
   // Idempotent per dish; re-wire if a reused container now shows a different dish.
-  if ((modal as any).__nutritionBase === base.id) return
-  ;(modal as any).__nutritionBase = base.id
+  if (wiredModals.get(modal) === base.id) return
+  wiredModals.set(modal, base.id)
 
   const host = ensureHost(modal, anchor) // right-aligned block inserted above the options
   host.textContent = '' // clear any stale widget (reused container / previous dish)

@@ -17,3 +17,13 @@ export interface ModalOption {
   label: string
   input: HTMLInputElement // the checkbox/radio to watch
 }
+
+export interface EstimateRequest {
+  type: 'ESTIMATE'
+  items: { id: string; name: string; description: string }[]
+}
+export interface EstimateResponse {
+  ok: boolean
+  results?: Record<string, Nutrition> // id -> nutrition (only successful ones)
+  error?: 'NO_API_KEY' | 'API_ERROR'
+}

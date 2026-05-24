@@ -71,9 +71,14 @@ export const woltAdapter: SiteAdapter = {
   },
 
   getModalTotalAnchor(modalRoot) {
+    // The "Add to order" submit button sits at the bottom of a fully-loaded modal,
+    // so anchoring there places the widget right above it. Returning null when none
+    // of these exist signals "modal not ready yet" (Wolt streams the content in after
+    // the shell), so the caller retries on a later mutation.
     return (
-      modalRoot.querySelector<HTMLElement>('[data-test-id="product-modal.price"]') ??
-      modalRoot.querySelector<HTMLElement>('footer, button')
+      modalRoot.querySelector<HTMLElement>('[data-test-id="product-modal.submit"]') ??
+      modalRoot.querySelector<HTMLElement>('[data-test-id="product-modal.total-price"]') ??
+      modalRoot.querySelector<HTMLElement>('[data-test-id="product-modal.price"]')
     )
   },
 

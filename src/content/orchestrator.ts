@@ -8,6 +8,7 @@ import {
   createNutritionButton,
   markButtonLoading,
   markButtonError,
+  clearNutritionUI,
 } from './render'
 import { sumNutrition } from '../core/nutrition'
 import { hashText } from '../core/hash'
@@ -67,11 +68,17 @@ export function wireModalButton(
   base: BaseRef,
   fetchEstimates: FetchEstimates,
 ): void {
-  if ((modal as any).__nutritionWired) return
-  ;(modal as any).__nutritionWired = true
+  // The modal content can stream in after its shell (Wolt does this), so the anchor
+  // may not exist on the first observer fire. Bail WITHOUT marking until it does —
+  // a later mutation retries and wires the populated modal.
+  const anchor = adapter.getModalTotalAnchor(modal)
+  if (!anchor) return
+  // Idempotent per dish; re-wire if a reused container now shows a different dish.
+  if ((modal as any).__nutritionBase === base.id) return
+  ;(modal as any).__nutritionBase = base.id
+  clearNutritionUI(modal)
   ensureStyles()
 
-  const anchor = adapter.getModalTotalAnchor(modal) ?? modal
   const btn = createNutritionButton()
   if (anchor.parentElement) anchor.parentElement.insertBefore(btn, anchor)
   else anchor.appendChild(btn)

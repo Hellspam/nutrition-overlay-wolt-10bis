@@ -139,6 +139,11 @@ export function markButtonError(btn: HTMLButtonElement): void {
   btn.innerHTML = `${LEAF}<span class="no-btn-label">לא הצלחנו — נסו שוב</span>`
 }
 
+/** Remove our injected button/card from a modal (e.g. before re-wiring a reused container). */
+export function clearNutritionUI(root: HTMLElement): void {
+  root.querySelectorAll('.' + BTN_CLASS + ', .' + TOTAL_CLASS).forEach((el) => el.remove())
+}
+
 // --- Menu-grid badge (kept for a possible future per-card mode; not auto-rendered) ---
 
 function ensureBadge(anchor: HTMLElement): HTMLElement {

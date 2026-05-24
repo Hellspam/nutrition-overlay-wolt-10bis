@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Nutrition Overlay (Wolt & 10bis)",
+  "version": "0.1.0",
+  "description": "Estimated calories + macros on Wolt and 10bis menu items.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://*.10bis.co.il/*",
+    "https://*.wolt.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "matches": [
+        "https://*.10bis.co.il/*",
+        "https://10bis.co.il/*",
+        "https://*.wolt.com/*",
+        "https://wolt.com/*"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

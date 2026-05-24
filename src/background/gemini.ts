@@ -1,7 +1,7 @@
 import { GEMINI_ENDPOINT, GEMINI_THINKING_BUDGET } from '../shared/constants'
 import type { Nutrition } from '../shared/types'
 
-export interface GeminiItem { id: string; name: string; description: string }
+export interface GeminiItem { id: string; name: string; description: string; priceText?: string }
 
 interface RequestBody {
   contents: { parts: { text: string }[] }[]
@@ -14,14 +14,19 @@ interface RequestBody {
 
 export function buildRequestBody(items: GeminiItem[]): RequestBody {
   const list = items
-    .map((it) => `- id="${it.id}": ${it.name}${it.description ? ' — ' + it.description : ''}`)
+    .map((it) => {
+      const desc = it.description ? ' — ' + it.description : ''
+      const price = it.priceText ? ` (price: ${it.priceText})` : ''
+      return `- id="${it.id}": ${it.name}${desc}${price}`
+    })
     .join('\n')
   const prompt =
     `You are a nutrition estimator. For each food item below (text may be Hebrew), ` +
     `estimate the nutrition for the ENTIRE item as sold — the full portion you receive for ` +
     `this listing (the whole dish, sandwich, container, or whole cake), NOT a single slice and ` +
     `NOT a per-100g amount. Use any size or weight hints in the text (centimeters, grams, ` +
-    `liters, pieces, "whole"/"שלם") to judge the true portion size. ` +
+    `liters, pieces, "whole"/"שלם") to judge the true portion size, and use the listed price ` +
+    `as a portion cue — a higher price usually means a larger or shareable item, not a single serving. ` +
     `Return ONLY a JSON array, one object per item, in this exact shape (match by id):\n` +
     `[{"id": string, "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number}]\n` +
     `All numbers are for the entire item as sold, non-negative, grams for macros. No prose, no markdown.\n\n` +

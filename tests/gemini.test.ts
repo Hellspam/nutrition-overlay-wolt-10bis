@@ -3,7 +3,7 @@ import { buildRequestBody, parseResponse, callGemini } from '../src/background/g
 import { GEMINI_THINKING_BUDGET } from '../src/shared/constants'
 
 const items = [
-  { id: 'a', name: 'פלאפל בפיתה', description: 'עם חומוס וסלט' },
+  { id: 'a', name: 'פלאפל בפיתה', description: 'עם חומוס וסלט', priceText: '₪24.00' },
   { id: 'b', name: 'תוספת בטטה', description: '' },
 ]
 
@@ -16,6 +16,7 @@ describe('buildRequestBody', () => {
     expect(text).toContain('a')
     expect(text).toContain('b')
     expect(text).toContain('פלאפל בפיתה')
+    expect(text).toContain('₪24.00') // price is passed through for portion sizing
   })
 })
 

@@ -29,7 +29,9 @@ export async function processItems(
   if (fresh.length === 0) return
   fresh.forEach((it) => RENDERED.add(it.anchor))
 
-  const resp = await fetchEstimates(fresh.map(({ id, name, description }) => ({ id, name, description })))
+  const resp = await fetchEstimates(
+    fresh.map(({ id, name, description, priceText }) => ({ id, name, description, priceText })),
+  )
   for (const it of fresh) {
     const n = resp.results?.[it.id]
     if (n) renderBadge(it.anchor, n)
@@ -37,7 +39,7 @@ export async function processItems(
   }
 }
 
-export interface BaseRef { id: string; name: string; description: string }
+export interface BaseRef { id: string; name: string; description: string; priceText?: string }
 
 export function resolveModalBase(
   adapter: SiteAdapter,
@@ -47,11 +49,11 @@ export function resolveModalBase(
   const m = adapter.getModalItem(modal)
   if (m?.name) {
     const match = items.find((it) => it.name === m.name)
-    if (match) return { id: match.id, name: match.name, description: match.description }
+    if (match) return { id: match.id, name: match.name, description: match.description, priceText: match.priceText }
     return { id: hashText(m.name + '\n' + m.description), name: m.name, description: m.description }
   }
   const guess = items.find((it) => modal.textContent?.includes(it.name)) ?? items[0]
-  return guess ? { id: guess.id, name: guess.name, description: guess.description } : null
+  return guess ? { id: guess.id, name: guess.name, description: guess.description, priceText: guess.priceText } : null
 }
 
 const ZERO: Nutrition = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }
@@ -88,7 +90,7 @@ export function wireModalButton(
 
     const options = adapter.findModalOptions(modal)
     const reqItems = [
-      { id: base.id, name: base.name, description: base.description },
+      { id: base.id, name: base.name, description: base.description, priceText: base.priceText },
       ...options.map((o, i) => ({ id: `opt:${i}:${o.label}`, name: o.label, description: '' })),
     ]
 

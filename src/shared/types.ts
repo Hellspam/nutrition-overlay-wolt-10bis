@@ -20,7 +20,7 @@ export interface ModalOption {
 
 export interface EstimateRequest {
   type: 'ESTIMATE'
-  items: { id: string; name: string; description: string }[]
+  items: { id: string; name: string; description: string; priceText?: string }[]
 }
 export interface EstimateResponse {
   ok: boolean

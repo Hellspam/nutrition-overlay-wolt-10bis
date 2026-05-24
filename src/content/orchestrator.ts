@@ -98,7 +98,8 @@ export function wireModalButton(
     let resp: EstimateResponse
     try {
       resp = await fetchEstimates(reqItems)
-    } catch {
+    } catch (e) {
+      console.error('[nutrition] estimate request failed (content):', e)
       resp = { ok: false, error: 'API_ERROR' }
     }
     if (!resp.ok || !resp.results) {

@@ -38,6 +38,7 @@ async function handleEstimate(req: EstimateRequest): Promise<EstimateResponse> {
     }
     return { ok: true, results }
   } catch (e) {
+    console.error('[nutrition] estimate failed (background):', e)
     const msg = e instanceof Error ? e.message : ''
     const limited = /\b429\b|rate|quota/i.test(msg)
     return { ok: false, error: limited ? 'RATE_LIMIT' : 'API_ERROR', results }
